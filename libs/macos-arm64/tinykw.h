@@ -38,7 +38,7 @@
 #define TKW_VERSION_MINOR 0
 #define TKW_VERSION_PATCH 7
 
-#define TKW_CTX_SIZE (9000)
+#define TKW_CTX_SIZE (9200)
 #define TKW_AUDIO_FRAME_SIZE (480)
 
 typedef enum {
