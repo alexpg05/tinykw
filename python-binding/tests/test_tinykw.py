@@ -23,16 +23,22 @@ def test_tinykw(lang: str, wav_file: str, keyword_bytes: list):
     assert(isinstance(kw_id, int))
     assert(kw_id >= 0)
 
+    detected_ids = []
+    engine.set_callback(detected_ids.append)
+
     audio_path = Path(__file__).resolve().parent / "audio_files" / wav_file
     sample_rate, data = wavfile.read(audio_path)
     assert(sample_rate == 16000)
     assert(data.dtype == np.int16)
 
     timesteps = data.shape[0] // engine.frame_size
-    detections = np.zeros(timesteps, dtype=np.int32)
     for t in range(timesteps):
         engine.process_frame(data[t * engine.frame_size: (t+1) * engine.frame_size])
-        if engine.is_keyword_detected(kw_id):
-            detections[t] = 1
-            engine.clear_keyword_flag(kw_id)
-    assert(np.sum(detections) == 1)
+    assert(detected_ids == [kw_id])
+
+    # no detection once the keyword is removed
+    engine.remove_keyword(kw_id)
+    detected_ids.clear()
+    for t in range(timesteps):
+        engine.process_frame(data[t * engine.frame_size: (t+1) * engine.frame_size])
+    assert(detected_ids == [])

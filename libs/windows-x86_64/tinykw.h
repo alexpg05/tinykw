@@ -3,10 +3,8 @@
  *
  * Copyright (c) 2026 voyelle-io.
  * 
- * This software is licensed for non-commercial use only.
+ * Licensed under the Apache License, Version 2.0.
  * See the LICENSE file in the root of this repository for full terms.
- * 
- * For commercial licensing, contact: https://www.voyelle.io
  *
  */
 
@@ -36,10 +34,10 @@
 
 #define TKW_VERSION_MAJOR 1
 #define TKW_VERSION_MINOR 0
-#define TKW_VERSION_PATCH 7
+#define TKW_VERSION_PATCH 12
 
-#define TKW_CTX_SIZE (9200)
-#define TKW_AUDIO_FRAME_SIZE (480)
+#define TKW_CTX_SIZE         17000
+#define TKW_AUDIO_FRAME_SIZE 480
 
 typedef enum {
     TKW_OK = 0,
@@ -53,25 +51,30 @@ typedef enum {
 } tkw_status;
 
 
+
 /*
  * `tkw_context` holds the memory required for internal state.
  */
 typedef struct {
-    alignas(8) uint8_t internal_memory[TKW_CTX_SIZE]; 
+    alignas(16) uint8_t internal_memory[TKW_CTX_SIZE]; 
 } tkw_context;
 
 /*
  * Initializes a `tkw_context` provided by caller.
  * Calling tkw_init() multiple times is allowed and resets all internal state,
  * including registered keywords and detection flags.
- * `ctx` must not be NULL.
+ * Args:
+ *  - ctx: context to initialize.
+ *
+ * Returns TKW_OK on success.
  */
 TKW_API tkw_status tkw_init(tkw_context* ctx);
 
 /*
- * Similar to tkw_init(), but creates `tkw_context` 
- * on the heap and initializes it. 
+ * Similar to tkw_init(), but creates `tkw_context` on the heap and initializes it. 
  * This should be used in conjunction with `tkw_destroy()`.
+ * 
+ * Returns the new context, or NULL if allocation failed.
  */
 TKW_API tkw_context* tkw_create(void);
 
@@ -81,45 +84,59 @@ TKW_API tkw_context* tkw_create(void);
  */
 TKW_API void tkw_destroy(tkw_context* ctx);
 
-/* 
- * Adds a keyword to be detected.
- *
- * Inputs:
- *  - data: pointer to the 48-byte encoded keyword (can be obtained from https://www.voyelle.io/tinykw)
- *  - detection_threshold: value in q7 between 0 and 255. Controls how strict the engine is when deciding whether a detection is valid.
- *      * A high value makes the engine more conservative: only high-scoring detections are accepted (fewer false positives, but more missed detections).
- *      * A low value makes the engine more permissive: more detections are accepted (fewer misses, but more false positives).
- *      * This parameter may need tuning depending on the keyword, use case and environment. A good starting point is to set it mid-range at 128, and 
- *        then eventually adjust based on your tolerance for false positives vs missed detections.
- *  - out_id: receives the assigned keyword ID
+/*
+ * Callback when a keyword is detected.
+ *  - keyword_id: ID of the detected keyword, as returned by tkw_add_keyword().
+ *  - user_ctx: pointer to void passed to tkw_set_callback().
+ * It is important to keep the callback short.
  */
-TKW_API tkw_status tkw_add_keyword(const uint8_t data[48], uint8_t detection_threshold, uint32_t* out_id, tkw_context* ctx);
+typedef void(*tkw_callback)(uint8_t keyword_id, void* user_ctx);
+
+/*
+ * Sets the callback called when a keyword is detected.
+ * Args:
+ *  - user_cb: callback function of signature `tkw_callback`.
+ *  - user_ctx: pointer that will be passed to the callback.
+ *  - ctx: TinyKW context
+ * 
+ * Returns TKW_OK on success.
+ */
+TKW_API tkw_status tkw_set_callback(tkw_callback user_cb, void* user_ctx, tkw_context* ctx);
+
+/* 
+ * Adds a keyword to detect.
+ *
+ * Args:
+ *  - data: 48-byte encoded keyword (can be obtained from https://www.voyelle.io/tinykw)
+ *  - detection_threshold: value between 0 and 255, controlling how strict the detection is.
+ *      * Higher: fewer false positives, but more missed detections.
+ *      * Lower:  fewer missed detections, but more false positives.
+ *      It is recommended to start at 128, and then adjust if necessary.
+ *  - out_id: receives the ID assigned to the keyword.
+ *  - ctx: TinyKW context.
+ */
+TKW_API tkw_status tkw_add_keyword(const uint8_t data[48], uint8_t detection_threshold, uint8_t* out_id, tkw_context* ctx);
+
+/*
+ * Deletes a keyword
+ * 
+ * Args:
+ *  - id: ID of the keyword, as returned by tkw_add_keyword().
+ *  - ctx: TinyKW context.
+ * 
+ * Returns TKW_OK on success.
+ */
+TKW_API tkw_status tkw_remove_keyword(uint8_t id, tkw_context* ctx);
 
 /*
  * Processes one frame of 16-bit PCM audio sampled at 16 kHz.
  *
- * Inputs:
+ * Args:
  *  - waveform: pointer to audio samples
  *  - size: number of samples in waveform, must equal TKW_AUDIO_FRAME_SIZE
+ *  - ctx: TinyKW context
  */
 TKW_API tkw_status tkw_process_frame(const int16_t* waveform, size_t size, tkw_context* ctx);
-
-/*
- * Reads the detection flag for a specific keyword.
- *
- * On success, writes:
- *  - 1 if detected
- *  - 0 otherwise
- *
- * Detection remains set until cleared with tkw_clear_keyword_flag().
- */
-TKW_API tkw_status tkw_is_keyword_detected(uint32_t keyword_id, uint32_t* out_detected, tkw_context* ctx);
-
-/*
- * Clears the detection flag for a specific keyword.
- */
-TKW_API tkw_status tkw_clear_keyword_flag(uint32_t keyword_id, tkw_context* ctx);
-
 
 /*
  * Returns a human-readable string for a status code.

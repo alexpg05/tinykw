@@ -4,6 +4,8 @@
 
 The Makefile should also be adapted based on the build platform.
 
+The keywords are defined in `keywords_encodings.c`. Their encodings can be retrieved from https://voyelle.io/tinykw.
+
 ## Usage
 
 ```bash

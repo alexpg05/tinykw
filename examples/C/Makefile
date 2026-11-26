@@ -9,8 +9,8 @@ TINYKW_INCLUDE_DIR := $(TINYKW_LIB_ROOT)
 TINYKW_LIB_PATH := $(TINYKW_LIB_ROOT)/$(LANGUAGE)
 TINYKW_LIB_NAME := tinykw
 
-SRCS := microphone_portaudio.c
-BINS := $(SRCS:%.c=$(BUILD_DIR)/%.bin)
+SRCS := microphone_portaudio.c keywords_encodings.c
+BIN := $(BUILD_DIR)/microphone_portaudio.bin
 
 CC := gcc
 INCLUDE_DIRS := -I$(TINYKW_INCLUDE_DIR) -I/usr/local/include
@@ -18,11 +18,11 @@ LIBRARY_PATHS := -L$(TINYKW_LIB_PATH) -L/usr/local/lib
 LIBRARY_NAMES := -l$(TINYKW_LIB_NAME) -lportaudio
 
 .PHONY: all
-all: $(BINS)
+all: $(BIN)
 
-$(BUILD_DIR)/%.bin: %.c
+$(BIN): $(SRCS)
 	mkdir -p $(dir $@)
-	$(CC) -o $@ $< $(INCLUDE_DIRS) $(LIBRARY_PATHS) $(LIBRARY_NAMES)
+	$(CC) -o $@ $(SRCS) $(INCLUDE_DIRS) $(LIBRARY_PATHS) $(LIBRARY_NAMES)
 
 .PHONY: clean
 clean: 

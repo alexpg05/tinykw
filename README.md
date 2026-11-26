@@ -4,7 +4,7 @@
 
 TinyKW ("Tiny Keyword") is a lightweight, configurable, keyword spotting engine. 
 
-It can be used for Wake word detection and simple Voice commands, on cortex-M MCUs, Raspberry Pi and desktops.
+It can be used for Wake word detection and Voice commands, on cortex-M MCUs, ESP32, Raspberry Pi and desktops.
 
 ## Installation
 
@@ -19,18 +19,19 @@ Before use, keywords must be encoded using the [web encoder](https://voyelle.io/
 ```C
 #include "tinykw.h"
 
+void on_detection(uint8_t kw_id, void* user_ctx)
+{
+    // called when a keyword is detected
+}
+
 tkw_context ctx;
 tkw_status status = tkw_init(&ctx);
 
-uint32_t kw_id;
+uint8_t kw_id;
 status = tkw_add_keyword(keyword_bytes, detection_threshold, &kw_id, &ctx);
+status = tkw_set_callback(on_detection, NULL, &ctx);
 // ...
-status = tkw_process_frame(samples, size, &ctx);
-// ...
-uint32_t is_detected = 0;
-status = tkw_is_keyword_detected(kw_id, &is_detected, &ctx);
-if (is_detected)
-    status = tkw_clear_keyword_flag(kw_id, &ctx);
+status = tkw_process_frame(samples, size, &ctx); // calls on_detection() when a keyword is detected
 ```
 
 See [examples/C](examples/C/) and [examples/Python](examples/python/) for full examples.
@@ -42,5 +43,5 @@ See [examples/C](examples/C/) and [examples/Python](examples/python/) for full e
 
 ## License
 
-TinyKW is free for non-commercial use, including hobby projects, research, education, prototyping, and evaluation.
-Please see [LICENSE](LICENSE) for details. For commercial enquiries, please contact [contact@voyelle.io](mailto:contact@voyelle.io).
+TinyKW is licensed under the Apache License 2.0.
+Please see [LICENSE](LICENSE) for details.
