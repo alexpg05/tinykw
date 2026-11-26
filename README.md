@@ -38,8 +38,8 @@ See [examples/C](examples/C/) and [examples/Python](examples/python/) for full e
 
 ## Projects using TinyKW
 
-* [wyoming-tinykw](https://github.com/Yamawine408/wyoming-tinykw): Wake word detection for Home Assistant Wyoming Protocol.
-* [stm32f411-voice-interaction](https://github.com/voyelle-io/stm32f411-voice-interaction): Voice interaction on NUCLEO-STM32F411 board.
+* [stm32f411-keyword-spotting](https://github.com/alexpg05/stm32f411-keyword-spotting): Demo on NUCLEO-STM32F411 board.
+* [esp32-s3-keyword-spotting](https://github.com/alexpg05/esp32-s3-keyword-spotting): Demo on ESP32-S3-DevKit.
 
 ## License
 
