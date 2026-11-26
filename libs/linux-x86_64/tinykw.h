@@ -33,8 +33,8 @@
 #endif
 
 #define TKW_VERSION_MAJOR 1
-#define TKW_VERSION_MINOR 0
-#define TKW_VERSION_PATCH 12
+#define TKW_VERSION_MINOR 1
+#define TKW_VERSION_PATCH 0
 
 #define TKW_CTX_SIZE         17000
 #define TKW_AUDIO_FRAME_SIZE 480
